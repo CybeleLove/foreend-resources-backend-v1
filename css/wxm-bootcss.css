@@ -1,0 +1,22 @@
+/* 设置语义颜色 */
+/* 定义徽章位置 */
+.badge {
+  margin-top: -18px;
+  margin-left: -8px;
+}
+/* 定义徽章语义颜色 */
+.badge-primary {
+  background-color: #337ab7;
+}
+.badge-success {
+  background-color: #5cb85c;
+}
+.badge-info {
+  background-color: #5bc0de;
+}
+.badge-warning {
+  background-color: #f0ad4e;
+}
+.badge-danger {
+  background-color: #d9534f;
+}

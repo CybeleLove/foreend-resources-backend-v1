@@ -1,0 +1,83 @@
+.wxm-scroll {
+  position: relative;
+  overflow: hidden;
+}
+.wxm-scroll > [data-toggle="scroll"] {
+  padding-right: 10px;
+}
+.wxm-scroll .wxm-scroll-vertical-box {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  text-align: center;
+  border: 1px solid #e7e7e7;
+  border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+.wxm-scroll .wxm-scroll-vertical-box:hover {
+  opacity: 1;
+  filter: alpha(opacity=100);
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-top,
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-middle,
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-bottom {
+  position: absolute;
+  width: 100%;
+  cursor: pointer;
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-top,
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-bottom {
+  height: 22px;
+  line-height: 8px;
+  font-size: 10px;
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-top i,
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-bottom i {
+  transform: rotate(30dge);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-top i:hover,
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-bottom i:hover {
+  background-color: #c7c7c7;
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-top {
+  top: 0;
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-top i {
+  border-bottom: 1px solid #e7e7e7;
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-bottom {
+  bottom: 0;
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-bottom i {
+  border-top: 1px solid #e7e7e7;
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-middle {
+  top: 0;
+  margin: 23px 0;
+  background-color: #e7e7e7;
+  border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+.wxm-scroll .wxm-scroll-vertical-box .wxm-scroll-middle:hover {
+  background-color: #c7c7c7;
+}
+.wxm-scroll-mask {
+  position: absolute;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+}
