@@ -60,3 +60,13 @@
 .wxm-footer {
   height: 18px;
 }
+.wxm-console {
+  position: absolute;
+  top: 200px;
+  left: 300px;
+  z-index: 9999;
+  background-color: #c7c7c7;
+  width: 150px;
+  height: 50px;
+  opacity: 0.8;
+}

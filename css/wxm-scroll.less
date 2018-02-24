@@ -1,4 +1,5 @@
 @color-border: #e7e7e7;
+@color-icon-hover: #f0f0f0;
 @color-scroll-hover: #c7c7c7;
 @color-scroll: #e7e7e7;
 
@@ -8,14 +9,14 @@
     overflow: hidden;
 
     >[data-toggle="scroll"] {
-        padding-right: 10px;
+        padding-right: 14px;
     }
 
     .wxm-scroll-vertical-box {
         position: absolute;
         top: 0;
         right: 0;
-        width: 8px;
+        width: 12px;
         height: 100%;
         text-align: center;
         border: 1px solid @color-border;
@@ -29,16 +30,20 @@
             filter: alpha(opacity=100); // For IE8 and earlier
         }
 
+        i.fa {
+            display: block;
+        }
+
         .wxm-scroll-top,
         .wxm-scroll-middle,
         .wxm-scroll-bottom {
             position: absolute;
-            width: 100%;
             cursor: pointer;
         }
 
         .wxm-scroll-top,
         .wxm-scroll-bottom {
+            width: 100%;
             height: 22px;
             line-height: 8px;
             font-size: 10px;
@@ -52,7 +57,8 @@
                 -ms-user-select: none; // Internet Explorer/Edge
                 user-select: none; // Non-prefixed version, currently not supported by any browser
                 &:hover {
-                    background-color: @color-scroll-hover;
+                    background-color: @color-icon-hover;
+                    border: 1px solid #8c8a8a;;
                 }
             }
         }
@@ -71,8 +77,8 @@
         }
         .wxm-scroll-middle {
             top: 0;
-            margin: 23px 0;
-            // height: 120px; // TODO
+            margin: 25px 1px;
+            width: 8px;
             background-color: @color-scroll;
             border-top-right-radius: 4px;
             border-top-left-radius: 4px;
