@@ -69,78 +69,78 @@ wxm.Scroll.prototype.init = function() {
     var $element = that.$element;
     var $parent = $element.parent();
     var dataId = tools.getDataId();
-    var eleHeight = tools.getElementHeight();
-    var parentHeight = tools.getParentHeight();
-    var iconHeight = wxm.Scroll.DEFAULTS.iconHeight;
-    var scrollHeight = tools.getScrollHeight();
-    var remainHeight = tools.getRemainHeight();
 
-    // 给目标元素添加data-id
-    $element.attr('data-id', dataId);
-    // 给父元素添加滚动条子元素
-    $parent.append('<!-- 滚动条元素目标对象为data-id:' + dataId + '的元素 -->').append(wxm.Scroll.DEFAULTS.template.replace('#dataTarget#', dataId));
-    // 获取滚动条滚动块
-    var $middle = $parent.find('div[data-target=' + dataId + '] > .wxm-scroll-middle');
-    // 设置滚动快高度
-    $middle.height(scrollHeight);
-
-    var index = 0;
-
-    $middle.off('mousedown.scroll.middle.data-api').on('mousedown.scroll.middle.data-api', function(event) {
-        // 获取事件
-        event = wxm.event.getEvent(event);
-        // 滚动条滚动块触发生成元素
-        var $mask = $('<div class="wxm-scroll-mask"></div>');
-        // 鼠标距离触发元素顶端距离
-        var eventOffset = event.offsetY;
-        // 触发元素top值
-        var moddleTop = $(event.target).css('top').replace('px', '');
-        // 触发元素top值为零时，距离浏览器顶端距离
-        var eventTop = event.pageY - eventOffset - middleTop;
+    if (!$element.attr('data-id')) {
+        // 给目标元素添加data-id
+        $element.attr('data-id', dataId);
+        // 给父元素添加滚动条子元素
+        $parent.append('<!-- 滚动条元素目标对象为data-id:' + dataId + '的元素 -->').append(wxm.Scroll.DEFAULTS.template.replace('#dataTarget#', dataId));
+        // 获取滚动条滚动块
+        var $middle = $parent.find('div[data-target=' + dataId + '] > .wxm-scroll-middle');
+        // 获取滚动条高度
+        var scrollHeight = tools.getScrollHeight();
+        // 设置滚动快高度
+        $middle.height(scrollHeight);
+    }
 
 
-        $(document.body).append('<!-- 滚动条滚动块点击生成元素 -->').append($mask);
-
-
-        $mask.html('pageY:' + event.pageY + ' offset:' + event.offsetY + 'client:' + event.clientY + 'top:' + moddleTop); // TODO
-
-        // 鼠标移动事件
-        $(document).off('mousemove.scroll.document.data-api').on('mousemove.scroll.document.data-api', function(event) {
-            $mask.html('pageY:' + event.pageY + ' offset:' + event.offsetY + 'client:' + event.clientY); // TODO
-
-            event.preventDefault();
-        }).off('mouseup.scroll.middle.data-api').on('mouseup.scroll.middle.data-api', function(event) {
-            $('.wxm-scroll-mask').remove();
-        });
-    });
+    // 
 
     // $parent.on('mousewheel DOMMouseScroll', function(e) {
 
     // });
-    // $middle.off('mousedown.scroll.middle.data-api').on('mousedown.scroll.middle.data-api', function(event) {
-    //     event = wxm.event.getEvent(event);
-    //     if (event.which != 1) return;
-    //     var $target = $(event.target);
-    //     var offsetY = event.offsetY;
+    $middle.off('mousedown.scroll.middle.data-api').on('mousedown.scroll.middle.data-api', function(event) {
+        event = wxm.event.getEvent(event);
+        if (event.which != 1) return;
+        var $target = $(event.target);
+        var offsetY = event.offsetY;
 
-    //     $(document).off('mousemove.scroll.middle.data-api').on('mousemove.scroll.middle.data-api', function(event) {
-    //         var top = event.offsetY - offsetY;
-    //         if (top < 0) {
-    //             top = 0;
-    //         } else if (top > remainHeight) {
-    //             top = remainHeight;
-    //         }
-    //         $target.css('top', top + 'px');
-    //         //getMousePos(event);
-    //         //$('.wxm-console').html('offsetY:' + offsetY + ' top:' + top + 'pageY:' + event.pageY + ' new-offsetY:' + event.offsetY);
-    //         $('.wxm-console').html('buttons:' + event.buttons);
-    //         //console.dir(event);
-    //     }).off('mouseout.scroll.middle.data-api').on('mouseout.scroll.middle.data-api', function(event) {
-    //         $(document).off('mousemove.scroll.middle.data-api');
-    //         //$middle.off('mousedown.scroll.middle.data-api');
-    //     });
-    //     event.preventDefault();
-    // });
+        $(document).off('mousemove.scroll.middle.data-api').on('mousemove.scroll.middle.data-api', function(event) {
+            var top = event.offsetY - offsetY;
+            var remainHeight = tools
+            if (top < 0) {
+                top = 0;
+            } else if (top > remainHeight) {
+                top = remainHeight;
+            }
+            $middle.off('mousedown.scroll.middle.data-api').on('mousedown.scroll.middle.data-api', function(event) {
+                // 获取事件
+                event = wxm.event.getEvent(event);
+                // 滚动条滚动块触发生成元素
+                var $mask = $('<div class="wxm-scroll-mask"></div>');
+                // 鼠标距离触发元素顶端距离
+                var eventOffset = event.offsetY;
+                // 触发元素top值
+                var moddleTop = $(event.target).css('top').replace('px', '');
+                // 触发元素top值为零时，距离浏览器顶端距离
+                var eventTop = event.pageY - eventOffset - middleTop;
+
+
+                $(document.body).append('<!-- 滚动条滚动块点击生成元素 -->').append($mask);
+
+
+                $mask.html('pageY:' + event.pageY + ' offset:' + event.offsetY + 'client:' + event.clientY + 'top:' + moddleTop); // TODO
+
+                // 鼠标移动事件
+                $(document).off('mousemove.scroll.document.data-api').on('mousemove.scroll.document.data-api', function(event) {
+                    $mask.html('pageY:' + event.pageY + ' offset:' + event.offsetY + 'client:' + event.clientY); // TODO
+
+                    event.preventDefault();
+                }).off('mouseup.scroll.middle.data-api').on('mouseup.scroll.middle.data-api', function(event) {
+                    $('.wxm-scroll-mask').remove();
+                });
+            });
+            $target.css('top', top + 'px');
+            //getMousePos(event);
+            //$('.wxm-console').html('offsetY:' + offsetY + ' top:' + top + 'pageY:' + event.pageY + ' new-offsetY:' + event.offsetY);
+            $('.wxm-console').html('buttons:' + event.buttons);
+            //console.dir(event);
+        }).off('mouseout.scroll.middle.data-api').on('mouseout.scroll.middle.data-api', function(event) {
+            $(document).off('mousemove.scroll.middle.data-api');
+            //$middle.off('mousedown.scroll.middle.data-api');
+        });
+        event.preventDefault();
+    });
     /*
         $target.off('mouseup.scroll.middle.data-api').on('mouseup.scroll.middle.data-api', function(event) {
             $target.off('mousemove.scroll.middle.data-api');
@@ -150,6 +150,26 @@ wxm.Scroll.prototype.init = function() {
 };
 
 
+// 刷新滚动条
+wxm.Scroll.prototype.refresh = function() {
+    // 当前域
+    var that = this;
+    // 滚动条工具
+    var tools = that.tools;
+    // 当前对象元素
+    var $element = that.$element;
+    // 当前对象父元素
+    var $parent = $element.parent();
+    // 当前对象data-id
+    var dataId = tools.getDataId();
+    // 获取滚动条滚动块
+    var $middle = $parent.find('div[data-target=' + dataId + '] > .wxm-scroll-middle');
+    // 获取滚动条高度
+    var scrollHeight = tools.getScrollHeight();
+    // 设置滚动快高度
+    $middle.height(scrollHeight);
+    console.log('scrollHeight:' + scrollHeight + ' eleHeight:' + tools.getElementHeight() + ' parentHeight:' + tools.getParentHeight() + ' iconHeight:' + (wxm.Scroll.DEFAULTS.iconHeight * 2) + ' remainHeight:' + tools.getRemainHeight());
+};
 
 // 滚动条渲染
 wxm.Scroll.draw = function(_this) {
@@ -160,11 +180,29 @@ wxm.Scroll.draw = function(_this) {
     setTimeout(function() {
         $('.wxm-console').html('outerHeight' + $thiz.outerHeight() + ' parentHeight' + $parent.height());
         // 目标元素高度小于父容器
-        if ($thiz.outerHeight() <= $parent.height()) return;
-        // 已存在目标元素相对应的滚动条组件
-        if ($parent.children('.' + wxm.Scroll.DEFAULTS.clsPrefix + selfId).length > 0) return;
-        // 生成滚动条
-        $thiz.scroll();
+        if ($thiz.outerHeight() <= $parent.height()) {
+            // 删除目标元素对应的滚动条data-id
+            if ($thiz.attr('data-id') && $thiz.attr('data-id').startsWith(wxm.Scroll.DEFAULTS.dataIdPrefix)) {
+                $thiz.removeAttr('data-id');
+            }
+            // 删除目标元素对应滚动条元素
+            if ('undefined' != typeof($parent.find('div[data-target^=' + wxm.Scroll.DEFAULTS.dataIdPrefix + ']'))) {
+                $parent.find('div[data-target^=' + wxm.Scroll.DEFAULTS.dataIdPrefix + ']').remove();
+            }
+            // 删除目标元素data
+            $thiz.removeData('wxm.scroll');
+            return;
+        }
+
+        // 若目标元素的id或data-id存在
+        if (!selfId) {
+            // 生成滚动条
+            $thiz.scroll();
+        } else {
+            // 刷新滚动条（尺寸）
+            $thiz.scroll('refresh');
+        }
+
     }, 20);
 };
 
