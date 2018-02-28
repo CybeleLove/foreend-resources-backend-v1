@@ -296,7 +296,7 @@ wxm.Scroll.prototype.init = function() {
             var $target = $(event.target);
             // 鼠标点击滚动条向上按钮事件
             var interval = setInterval(function() {
-                wxm.Scroll.mousedownOrClickInArrowIcon(event, options.arrow.UP);
+                wxm.Scroll.mousedownOrClickInArrowIcon($target, options.arrow.UP);
             }, 80);
             // 按钮存放定时器值
             $target.attr('data-interval', interval);
@@ -323,7 +323,7 @@ wxm.Scroll.prototype.init = function() {
             var $target = $(event.target);
             // 鼠标点击滚动条向下按钮事件
             var interval = setInterval(function() {
-                wxm.Scroll.mousedownOrClickInArrowIcon(event, options.arrow.DOWN);
+                wxm.Scroll.mousedownOrClickInArrowIcon($target, options.arrow.DOWN);
             }, 80);
             // 按钮存放定时器值
             $target.attr('data-interval', interval);
@@ -396,15 +396,13 @@ wxm.Scroll.prototype.refresh = function() {
 };
 
 // 鼠标点击滚动条位移按钮事件
-wxm.Scroll.mousedownOrClickInArrowIcon = function(event, arrow) {
+wxm.Scroll.mousedownOrClickInArrowIcon = function($target, arrow) {
 
     // 若方向为空，则退出
     if (!arrow) {
         return;
     }
 
-    // 事件触发目标
-    var $target = $(event.target);
     // 滚动条容器
     var $box = $target.parents('.wxm-scroll');
     // 事件触发对应目标元素data-id
@@ -551,6 +549,28 @@ $(document).find('[data-toggle="scroll"]').each(function() {
 });
 // 鼠标滚动事件
 $('.wxm-scroll').on('mousewheel DOMMouseScroll', function(e) {
+    // 鼠标滚轮
     var isUp = wxm.event.isUp(e);
+
     $('.wxm-console').html(isUp ? 'up' : 'down');
+
+});
+
+// 鼠标滚动事件
+$('.wxm-scroll').on('mousewheel DOMMouseScroll', function(e) {
+    // 鼠标滚轮方向是否向上
+    var isUp = wxm.event.isUp(e);
+    // 当前对象
+    $this = $(this);
+    // 目标icon对象
+    var $target;
+    // 鼠标滚轮方向
+    var arrow = isUp ? wxm.Scroll.DEFAULTS.arrow.UP : wxm.Scroll.DEFAULTS.arrow.DOWN;
+
+    if (isUp) {
+        $target = $this.find('.wxm-scroll-vertical-box .wxm-scroll-top .fa-angle-up');
+    } else {
+        $target = $this.find('.wxm-scroll-vertical-box .wxm-scroll-bottom .fa-angle-down');
+    }
+    wxm.Scroll.mousedownOrClickInArrowIcon($target, arrow);
 });
