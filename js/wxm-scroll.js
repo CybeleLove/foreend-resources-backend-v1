@@ -12,10 +12,15 @@ wxm.Scroll = function(element, options) {
 wxm.Scroll.index = 1;
 
 wxm.Scroll.DEFAULTS = {
+    // 方向
+    arrow: {
+        UP: 'up', // 向上
+        DOWN: 'down' // 向下
+    },
+    offset: 3, // 位移
     clsPrefix: 'wxm-scroll-', // class前缀
     dataIdPrefix: 'wxmScrollAuto_', // data-id前缀
-    template: '<div class="wxm-scroll-vertical-box" data-target="#dataTarget#"><div class="wxm-scroll-top"><i class="fa fa-caret-up"></i><i class="fa fa-angle-up"></i></div><div class="wxm-scroll-middle"></div><div class="wxm-scroll-bottom"><i class="fa fa-angle-down"></i><i class="fa fa-caret-down"></i></div></div>',
-    iconHeight: 23 * 2 // 滚动条图标高度
+    template: '<div class="wxm-scroll-vertical-box" data-target="#dataTarget#"><div class="wxm-scroll-top"><i class="fa fa-caret-up"></i><i class="fa fa-angle-up"></i></div><div class="wxm-scroll-middle"></div><div class="wxm-scroll-bottom"><i class="fa fa-angle-down"></i><i class="fa fa-caret-down"></i></div></div>'
 };
 
 // 滚动条工具
@@ -38,25 +43,91 @@ wxm.Scroll.prototype.TOOLS = function() {
             return that.$element.outerHeight();
         },
         /**
-         * 获取触发元素父元素高度
+         * 获取触发元素margin-top
          */
-        getParentHeight: function() {
-            return that.$element.parent().outerHeight();
+        getElementMarginTop: function() {
+            return parseInt(that.$element.css('margin-top').replace('px', ''));
+        },
+        /**
+         * 获取滚动条容器
+         */
+        getScrollBox: function() {
+            return that.$element.parents('.wxm-scroll');
+        },
+        /**
+         * 获取滚动条容器高度
+         */
+        getScrollBoxHeight: function() {
+            return this.getScrollBox().outerHeight();
+        },
+        /**
+         * 获取滚动条顶部图标高度
+         */
+        getTopIconHeight: function() {
+            // 滚动条容器
+            var $box = this.getScrollBox();
+            return $box.find('.wxm-scroll-top').outerHeight();
+        },
+        /**
+         * 获取滚动条底部图标高度
+         */
+        getBottomIconHeight: function() {
+            // 滚动条容器
+            var $box = this.getScrollBox();
+            return $box.find('.wxm-scroll-bottom').outerHeight();
+        },
+        /**
+         * 获取滚动条图标总高度
+         */
+        getIconHeight: function() {
+            // 滚动条容器
+            var $box = this.getScrollBox();
+            return this.getTopIconHeight() + this.getBottomIconHeight();
+        },
+        /**
+         * 获取触发元素滚动条父元素
+         */
+        getScrollParent: function() {
+            return this.getScrollBox().find('.wxm-scroll-vertical-box');
+        },
+        /**
+         * 获取触发元素滚动条父元素高度
+         */
+        getScrollParentHeight: function() {
+            return this.getScrollParent().height();
+        },
+        /**
+         * 获取触发元素滚动条滚动块
+         */
+        getScrollMiddle: function() {
+            return this.getScrollBox().find('.wxm-scroll-middle');
+        },
+        /**
+         * 获取滚动条滚动块元素top
+         */
+        getScrollTop: function() {
+            return parseInt(this.getScrollMiddle().css('top').replace('px', ''));
         },
         /**
          * 获取滚动条滚动元素高度
          */
-        getScrollHeight: function() {
-            var parentHeight = this.getParentHeight();
+        calculateScrollHeight: function() {
+            var scrollBoxHeight = this.getScrollBoxHeight();
             var eleHeight = this.getElementHeight();
-            var scale = parentHeight / (eleHeight - parentHeight) + (parentHeight % (eleHeight - parentHeight) == 0 ? 0 : 1);
-            return (parentHeight - wxm.Scroll.DEFAULTS.iconHeight) * scale / (scale + 1);
+            var scale = scrollBoxHeight / (eleHeight - scrollBoxHeight) + (scrollBoxHeight % (eleHeight - scrollBoxHeight) == 0 ? 0 : 1);
+            return (scrollBoxHeight - this.getIconHeight()) * scale / (scale + 1);
+        },
+        /**
+         * 获取滚动条滚动块与目标元素高度比例
+         */
+        getScrollScale: function() {
+            return this.getElementHeight() / this.calculateScrollHeight();
         },
         /**
          * 获取滚动条预留高度
          */
         getRemainHeight: function() {
-            return this.getParentHeight() - wxm.Scroll.DEFAULTS.iconHeight - this.getScrollHeight();
+            return this.getScrollParentHeight() - this.getIconHeight() - this.getScrollMiddle().outerHeight();
         }
     };
     return tools;
@@ -66,8 +137,9 @@ wxm.Scroll.prototype.TOOLS = function() {
 wxm.Scroll.prototype.init = function() {
     var that = this;
     var tools = that.tools;
+    var options = that.options;
     var $element = that.$element;
-    var $parent = $element.parent();
+    var $parent = $element.parents('.wxm-scroll');
     var dataId = tools.getDataId();
 
     if (!$element.attr('data-id')) {
@@ -77,76 +149,197 @@ wxm.Scroll.prototype.init = function() {
         $parent.append('<!-- 滚动条元素目标对象为data-id:' + dataId + '的元素 -->').append(wxm.Scroll.DEFAULTS.template.replace('#dataTarget#', dataId));
         // 获取滚动条滚动块
         var $middle = $parent.find('div[data-target=' + dataId + '] > .wxm-scroll-middle');
-        // 获取滚动条高度
-        var scrollHeight = tools.getScrollHeight();
-        // 设置滚动快高度
+        // 获取滚动条置顶按钮
+        var $topBtn = $parent.find('div[data-target=' + dataId + '] > .wxm-scroll-top .fa-caret-up');
+        // 获取滚动条向上按钮
+        var $upBtn = $parent.find('div[data-target=' + dataId + '] > .wxm-scroll-top .fa-angle-up');
+        // 获取滚动条置底按钮
+        var $bottomBtn = $parent.find('div[data-target=' + dataId + '] > .wxm-scroll-bottom .fa-caret-down');
+        // 获取滚动条向下按钮
+        var $downBtn = $parent.find('div[data-target=' + dataId + '] > .wxm-scroll-bottom .fa-angle-down');
+        // 获取滚动条滚动块高度
+        var scrollHeight = tools.calculateScrollHeight();
+
+        // 设置滚动块外间距
+        $middle.css('margin-top', tools.getTopIconHeight() + 'px');
+        $middle.css('margin-bottom', tools.getBottomIconHeight() + 'px');
+        // 设置滚动块高度
         $middle.height(scrollHeight);
-    }
 
+        // 滚动条滚动块鼠标事件
+        $middle.off('mousedown.scroll.middle.data-api').on('mousedown.scroll.middle.data-api', function(event) {
+            // 获取事件
+            event = wxm.event.getEvent(event);
+            // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
+            if (event.which != 1) return;
+            // 事件触发目标
+            var $target = $(event.target);
+            // 事件触发目标滚动条data-id
+            var dataId = $target.parents('.wxm-scroll-vertical-box').attr('data-target');
+            // 鼠标距浏览器顶部Y坐标
+            var clientY = event.clientY;
+            // 遮罩层
+            var $mask = $('<div class="wxm-scroll-mask" data-target="' + dataId + '"><div>');
+            // 滚动条top
+            var top = $target.css('top');
 
-    // 
+            // 获取整型
+            top = parseInt(top.replace('px', ''));
+            // 鼠标距浏览器顶部Y坐标需减去滚动条top值
+            clientY -= top;
+            // console.log('clientY:' + event.clientY +'event.clientY:' + clientY + ' offsetY:' + event.offsetY + ' pageY:' + event.pageY + ' screenY:' + event.screenY + ' top:' + top);
 
-    // $parent.on('mousewheel DOMMouseScroll', function(e) {
+            // 目标元素添加hover效果
+            $target.addClass('hover');
+            $target.parents('.wxm-scroll-vertical-box').addClass('hover');
 
-    // });
-    $middle.off('mousedown.scroll.middle.data-api').on('mousedown.scroll.middle.data-api', function(event) {
-        event = wxm.event.getEvent(event);
-        if (event.which != 1) return;
-        var $target = $(event.target);
-        var offsetY = event.offsetY;
+            // 页面添加滚动条遮罩层
+            $(document.body).append($mask);
 
-        $(document).off('mousemove.scroll.middle.data-api').on('mousemove.scroll.middle.data-api', function(event) {
-            var top = event.offsetY - offsetY;
-            var remainHeight = tools
-            if (top < 0) {
-                top = 0;
-            } else if (top > remainHeight) {
-                top = remainHeight;
-            }
-            $middle.off('mousedown.scroll.middle.data-api').on('mousedown.scroll.middle.data-api', function(event) {
+            $mask.off('mousemove.scroll.middle.data-api').on('mousemove.scroll.middle.data-api', function(event) {
                 // 获取事件
                 event = wxm.event.getEvent(event);
-                // 滚动条滚动块触发生成元素
-                var $mask = $('<div class="wxm-scroll-mask"></div>');
-                // 鼠标距离触发元素顶端距离
-                var eventOffset = event.offsetY;
-                // 触发元素top值
-                var moddleTop = $(event.target).css('top').replace('px', '');
-                // 触发元素top值为零时，距离浏览器顶端距离
-                var eventTop = event.pageY - eventOffset - middleTop;
+                // 事件触发目标
+                var $target = $(event.target);
+                // 事件触发目标滚动条data-id
+                var dataId = $target.attr('data-target');
+                // 滚动条滚动块对应元素
+                var $middle = $('.wxm-scroll-vertical-box[data-target=' + dataId + '] .wxm-scroll-middle');
+                // 事件触发对应目标元素
+                var $element = $('.wxm-scroll [data-id="' + dataId + '"]');
+                // 获取滚动条top
+                var top = event.offsetY - clientY;
+                // 滚动条滚动块高度
+                var scrollHeight = $middle.outerHeight();
+                // 滚动条对应元素高度
+                var elementHeight = $element.outerHeight();
+                // 滚动条对应父元素高度
+                var parentHeight = tools.getScrollParentHeight();
+                // 比例
+                var scale = elementHeight / scrollHeight;
+                // 滚动条对应元素margin-top
+                var elementMarginTop = 0;
+                // 滚动条预留高度
+                var remainHeight = tools.getRemainHeight();
 
+                // 若滚动条top值小于0，则赋值为0
+                if (top <= 0) {
+                    top = 1;
+                    elementMarginTop = 0;
+                }
+                // 若滚动条top值大于预留高度，则赋值为预留高度
+                else if (top > remainHeight) {
+                    top = remainHeight - 1 + 'px';
+                    elementMarginTop = parentHeight - elementHeight + 'px';
+                } else {
+                    elementMarginTop = -(scale * top) + 'px';
+                    top = top + 'px';
+                }
 
-                $(document.body).append('<!-- 滚动条滚动块点击生成元素 -->').append($mask);
-
-
-                $mask.html('pageY:' + event.pageY + ' offset:' + event.offsetY + 'client:' + event.clientY + 'top:' + moddleTop); // TODO
-
-                // 鼠标移动事件
-                $(document).off('mousemove.scroll.document.data-api').on('mousemove.scroll.document.data-api', function(event) {
-                    $mask.html('pageY:' + event.pageY + ' offset:' + event.offsetY + 'client:' + event.clientY); // TODO
-
-                    event.preventDefault();
-                }).off('mouseup.scroll.middle.data-api').on('mouseup.scroll.middle.data-api', function(event) {
-                    $('.wxm-scroll-mask').remove();
-                });
+                // 设置滚动条滚动块top值
+                $middle.css('top', top);
+                // 设置事件触发对应目标元素margin-top值
+                $element.css('margin-top', elementMarginTop);
+            }).off('mouseout.scroll.middle.data-api').on('mouseout.scroll.middle.data-api', function(event) {
+                wxm.Scroll.mouseupOrMouseoutInMask(this);
+            }).off('mouseup.scroll.middle.data-api').on('mouseup.scroll.middle.data-api', function(event) {
+                wxm.Scroll.mouseupOrMouseoutInMask(this);
             });
-            $target.css('top', top + 'px');
-            //getMousePos(event);
-            //$('.wxm-console').html('offsetY:' + offsetY + ' top:' + top + 'pageY:' + event.pageY + ' new-offsetY:' + event.offsetY);
-            $('.wxm-console').html('buttons:' + event.buttons);
-            //console.dir(event);
-        }).off('mouseout.scroll.middle.data-api').on('mouseout.scroll.middle.data-api', function(event) {
-            $(document).off('mousemove.scroll.middle.data-api');
-            //$middle.off('mousedown.scroll.middle.data-api');
-        });
-        event.preventDefault();
-    });
-    /*
-        $target.off('mouseup.scroll.middle.data-api').on('mouseup.scroll.middle.data-api', function(event) {
-            $target.off('mousemove.scroll.middle.data-api');
+            // 防止火狐浏览器，在点击滚动条后移动鼠标时，滚动块不移动
             event.preventDefault();
-        });*/
+        });
 
+        // 滚动条置顶按钮点击事件
+        $topBtn.off('click.scroll.top.data-api').on('click.scroll.top.data-api', function(event) {
+            // 获取事件
+            event = wxm.event.getEvent(event);
+            // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
+            if (event.which != 1) return;
+            // 事件触发目标
+            var $target = $(event.target);
+            // 滚动条滚动块对应元素
+            var $middle = $target.parents('.wxm-scroll').find('.wxm-scroll-middle');
+            // 事件触发对应目标元素
+            var $element = $target.parents('.wxm-scroll').find('[data-id="' + dataId + '"]');
+            // 设置滚动条滚动块top值
+            $middle.css('top', '1px');
+            // 设置事件触发对应目标元素margin-top值
+            $element.css('margin-top', 0);
+        });
+
+        // 滚动条置底按钮点击事件
+        $bottomBtn.off('click.scroll.bottom.data-api').on('click.scroll.bottom.data-api', function(event) {
+            // 获取事件
+            event = wxm.event.getEvent(event);
+            // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
+            if (event.which != 1) return;
+            // 事件触发目标
+            var $target = $(event.target);
+            // 滚动条滚动块对应元素
+            var $middle = $target.parents('.wxm-scroll').find('.wxm-scroll-middle');
+            // 事件触发对应目标元素
+            var $element = $target.parents('.wxm-scroll').find('[data-id="' + dataId + '"]');
+            // 设置滚动条滚动块top值
+            $middle.css('top', tools.getRemainHeight() - 1 + 'px');
+            // 设置事件触发对应目标元素margin-top值
+            $element.css('margin-top', tools.getScrollParentHeight() - $element.outerHeight() + 'px');
+        });
+
+
+        // 滚动条向上按钮点击事件
+        $upBtn.off('mousedown.scroll.up.data-api').on('mousedown.scroll.up.data-api', function(event) {
+            // 获取事件
+            event = wxm.event.getEvent(event);
+            // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
+            if (event.which != 1) return;
+            // 事件触发目标
+            var $target = $(event.target);
+            // 鼠标点击滚动条向上按钮事件
+            var interval = setInterval(function() {
+                wxm.Scroll.mousedownOrClickInArrowIcon(event, options.arrow.UP);
+            }, 80);
+            // 按钮存放定时器值
+            $target.attr('data-interval', interval);
+        }).off('mouseup.scroll.up.data-api').on('mouseup.scroll.up.data-api', function(event) {
+            // 获取事件
+            event = wxm.event.getEvent(event);
+            // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
+            if (event.which != 1) return;
+            // 事件触发目标
+            var $target = $(event.target);
+            // 鼠标点击滚动条事件
+            var interval = $target.attr('data-interval');
+            // 取消定时器
+            clearInterval(interval);
+        });
+
+        // 滚动条向下按钮点击事件
+        $downBtn.off('mousedown.scroll.down.data-api').on('mousedown.scroll.down.data-api', function(event) {
+            // 获取事件
+            event = wxm.event.getEvent(event);
+            // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
+            if (event.which != 1) return;
+            // 事件触发目标
+            var $target = $(event.target);
+            // 鼠标点击滚动条向下按钮事件
+            var interval = setInterval(function() {
+                wxm.Scroll.mousedownOrClickInArrowIcon(event, options.arrow.DOWN);
+            }, 80);
+            // 按钮存放定时器值
+            $target.attr('data-interval', interval);
+        }).off('mouseup.scroll.down.data-api').on('mouseup.scroll.down.data-api', function(event) {
+            // 获取事件
+            event = wxm.event.getEvent(event);
+            // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
+            if (event.which != 1) return;
+            // 事件触发目标
+            var $target = $(event.target);
+            // 鼠标点击滚动条事件
+            var interval = $target.attr('data-interval');
+            // 取消定时器
+            clearInterval(interval);
+        });
+    }
 };
 
 
@@ -158,27 +351,144 @@ wxm.Scroll.prototype.refresh = function() {
     var tools = that.tools;
     // 当前对象元素
     var $element = that.$element;
-    // 当前对象父元素
-    var $parent = $element.parent();
-    // 当前对象data-id
-    var dataId = tools.getDataId();
     // 获取滚动条滚动块
-    var $middle = $parent.find('div[data-target=' + dataId + '] > .wxm-scroll-middle');
-    // 获取滚动条高度
-    var scrollHeight = tools.getScrollHeight();
-    // 设置滚动快高度
+    var $middle = tools.getScrollMiddle();
+    // 获取滚动条滚动块高度
+    var scrollHeight = tools.calculateScrollHeight();
+    // 获取滚动条滚动块与目标元素高度比例
+    var scale = tools.getScrollScale();
+    // 滚动条对应元素高度
+    var elementHeight = tools.getElementHeight();
+    // 滚动条对应父元素高度
+    var parentHeight = tools.getScrollParentHeight();
+    // 获取滚动条对应元素margin-top
+    var elementMarginTop = tools.getElementMarginTop();
+    // 获取滚动条滚动块top
+    var top = -(elementMarginTop / scale);
+    // 事件触发对应目标元素margin-top
+    var elementMarginTop = 0;
+
+    // 设置滚动条高度
     $middle.height(scrollHeight);
-    console.log('scrollHeight:' + scrollHeight + ' eleHeight:' + tools.getElementHeight() + ' parentHeight:' + tools.getParentHeight() + ' iconHeight:' + (wxm.Scroll.DEFAULTS.iconHeight * 2) + ' remainHeight:' + tools.getRemainHeight());
+
+    // 获取滚动条预留高度
+    var remainHeight = tools.getScrollParentHeight() - tools.getIconHeight() - $middle.outerHeight();
+
+    // 若滚动条top值小于0，则赋值为0
+    if (top <= 0) {
+        top = 1;
+        elementMarginTop = 0;
+    }
+    // 若滚动条top值大于预留高度，则赋值为预留高度
+    else if (top > remainHeight) {
+        top = remainHeight - 1 + 'px';
+        elementMarginTop = parentHeight - elementHeight + 'px';
+    } else {
+        elementMarginTop = -(scale * top) + 'px';
+        top = top + 'px';
+    }
+
+    // 设置滚动条top值
+    $middle.css('top', top);
+    // 设置事件触发对应目标元素margin-top值
+    $element.css('margin-top', elementMarginTop);
+    // console.log('scrollHeight:' + scrollHeight + 'elementMarginTop:' + elementMarginTop + ' remainHeight:' + remainHeight + ' top:' + top);
+};
+
+// 鼠标点击滚动条位移按钮事件
+wxm.Scroll.mousedownOrClickInArrowIcon = function(event, arrow) {
+
+    // 若方向为空，则退出
+    if (!arrow) {
+        return;
+    }
+
+    // 事件触发目标
+    var $target = $(event.target);
+    // 滚动条容器
+    var $box = $target.parents('.wxm-scroll');
+    // 事件触发对应目标元素data-id
+    var dataId = $box.find('.wxm-scroll-vertical-box').attr('data-target');
+    // 事件触发对应目标元素
+    var $element = $box.find('[data-id="' + dataId + '"]');
+    // 事件触发对应目标元素data，及初始化选项、工具
+    var data = $element.data('wxm.scroll'),
+        options = data.options,
+        tools = data.tools;
+    // 滚动条滚动块对应元素
+    var $middle = tools.getScrollMiddle();
+    // 滚动条滚动块top
+    var top = tools.getScrollTop();
+    // 滚动条滚动块高度
+    var scrollHeight = tools.calculateScrollHeight();
+    // 滚动条对应元素高度
+    var elementHeight = tools.getElementHeight();
+    // 滚动条对应父元素高度
+    var parentHeight = tools.getScrollParentHeight();
+    // 比例
+    var scale = elementHeight / scrollHeight;
+    // 事件触发对应目标元素margin-top
+    var elementMarginTop = 0;
+    // 滚动条预留高度
+    var remainHeight = tools.getRemainHeight();
+
+    // 设置位移
+    if (arrow == options.arrow.UP) {
+        top -= options.offset;
+    } else if (arrow == options.arrow.DOWN) {
+        top += options.offset;
+    }
+
+    // 若滚动条top值小于0，则赋值为0
+    if (top <= 0) {
+        top = 1;
+        elementMarginTop = 0;
+    }
+    // (*基本不会执行*)若滚动条top值大于预留高度，则赋值为预留高度
+    else if (top > remainHeight) {
+        top = remainHeight - 1 + 'px';
+        elementMarginTop = parentHeight - elementHeight + 'px';
+    } else {
+        elementMarginTop = -(scale * top) + 'px';
+        top = top + 'px';
+    }
+
+    // 设置滚动条滚动块top值
+    $middle.css('top', top);
+    // 设置事件触发对应目标元素margin-top值
+    $element.css('margin-top', elementMarginTop);
+};
+
+// 遮罩层鼠标放开或鼠标离开滚动条事件
+wxm.Scroll.mouseupOrMouseoutInMask = function(_this) {
+    // 获取当前对象
+    var $thiz = $(_this);
+    // 当前对象对应目标滚动条data-id
+    var dataId = $thiz.attr('data-target');
+    // 事件触发对应目标元素
+    var $box = $('.wxm-scroll-vertical-box[data-target=' + dataId + ']');
+    // 删除滚动条hover效果
+    $box.removeClass('hover');
+    $box.find('.wxm-scroll-middle').removeClass('hover');
+    // 删除当前对象
+    $thiz.remove();
 };
 
 // 滚动条渲染
 wxm.Scroll.draw = function(_this) {
     var $thiz = $(_this);
-    var $parent = $thiz.parent();
+    var $parent = $thiz.parents('.wxm-scroll');
     var selfId = $thiz.attr('id') || $thiz.attr('data-id');
+    // 定时器计数器，防止页面初始化完成之前，所需元素高度未确定
+    var index = 1;
 
-    setTimeout(function() {
-        $('.wxm-console').html('outerHeight' + $thiz.outerHeight() + ' parentHeight' + $parent.height());
+    var interval = setInterval(function() {
+        // 执行次数大于5次则停止定时器
+        if (index > 5) {
+            clearInterval(interval)
+        }
+        index++;
+
         // 目标元素高度小于父容器
         if ($thiz.outerHeight() <= $parent.height()) {
             // 删除目标元素对应的滚动条data-id
@@ -202,19 +512,10 @@ wxm.Scroll.draw = function(_this) {
             // 刷新滚动条（尺寸）
             $thiz.scroll('refresh');
         }
-
-    }, 20);
+        // 取消定时器
+        clearInterval(interval);
+    }, 10);
 };
-
-function getMousePos(event) {
-    var e = event || window.event;
-    var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
-    var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
-    var x = e.pageX || e.clientX + scrollX;
-    var y = e.pageY || e.clientY + scrollY;
-    //alert('x: ' + x + '\ny: ' + y);
-    $('.wxm-console').html('x' + x + ' y' + y);
-}
 
 // SCROLL PLUGIN DEFINITION
 // =======================
@@ -248,9 +549,8 @@ $.fn.scroll.noConflict = function() {
 $(document).find('[data-toggle="scroll"]').each(function() {
     wxm.Scroll.draw(this);
 });
-
 // 鼠标滚动事件
-// $('.wxm-scroll').on('mousewheel DOMMouseScroll', function(e) {
-//     var isUp = wxm.event.isUp(e);
-//     $('.wxm-console').html(isUp ? 'up' : 'down');
-// });
+$('.wxm-scroll').on('mousewheel DOMMouseScroll', function(e) {
+    var isUp = wxm.event.isUp(e);
+    $('.wxm-console').html(isUp ? 'up' : 'down');
+});
