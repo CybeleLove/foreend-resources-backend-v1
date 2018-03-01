@@ -256,9 +256,9 @@ wxm.Scroll.prototype.init = function() {
                 // 设置事件触发对应目标元素margin-top值
                 $element.css('margin-top', elementMarginTop);
             }).off('mouseout.scroll.middle.data-api').on('mouseout.scroll.middle.data-api', function(event) {
-                wxm.Scroll.mouseupOrMouseoutInMask(this);
+                wxm.Scroll.removeMask(this);
             }).off('mouseup.scroll.middle.data-api').on('mouseup.scroll.middle.data-api', function(event) {
-                wxm.Scroll.mouseupOrMouseoutInMask(this);
+                wxm.Scroll.removeMask(this);
             });
             // 防止火狐浏览器，在点击滚动条后移动鼠标时，滚动块不移动
             event.preventDefault();
@@ -297,23 +297,30 @@ wxm.Scroll.prototype.init = function() {
             if (event.which != 1) return;
             // 事件触发目标
             var $target = $(event.target);
-            // 鼠标点击滚动条向上按钮事件
-            var interval = setInterval(function() {
-                wxm.Scroll.mousedownOrClickInArrowIcon($target, options.arrow.UP);
-            }, 80);
-            // 按钮存放定时器值
-            $target.attr('data-interval', interval);
-        }).off('mouseup.scroll.up.data-api').on('mouseup.scroll.up.data-api', function(event) {
-            // 获取事件
-            event = wxm.event.getEvent(event);
-            // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
-            if (event.which != 1) return;
-            // 事件触发目标
-            var $target = $(event.target);
-            // 鼠标点击滚动条事件
-            var interval = $target.attr('data-interval');
-            // 取消定时器
-            clearInterval(interval);
+            // 遮罩层
+            var $mask = $('<div class="wxm-scroll-mask" data-target="' + dataId + '"><div>');
+
+            // 目标元素添加hover效果
+            tools.getScrollMiddle().addClass('hover');
+            tools.getScrollParent().addClass('hover');
+
+            // 页面添加滚动条遮罩层
+            $(document.body).append($mask);
+
+            $mask.off('mouseover.scroll.up.data-api').on('mouseover.scroll.up.data-api', function(event) {
+                // 仿鼠标点击滚动条向上按钮事件
+                var interval = setInterval(function() {
+                    wxm.Scroll.mousedownOrClickInArrowIcon($target, options.arrow.UP);
+                }, 60);
+                // 遮罩层存放定时器值
+                $mask.attr('data-interval', interval);
+            }).off('mouseout.scroll.up.data-api').on('mouseout.scroll.up.data-api', function(event) {
+                wxm.Scroll.cancelInterval(event);
+                wxm.Scroll.removeMask(this);
+            }).off('mouseup.scroll.up.data-api').on('mouseup.scroll.up.data-api', function(event) {
+                wxm.Scroll.cancelInterval(event);
+                wxm.Scroll.removeMask(this);
+            });
         });
 
         // 滚动条向下按钮点击事件
@@ -324,23 +331,30 @@ wxm.Scroll.prototype.init = function() {
             if (event.which != 1) return;
             // 事件触发目标
             var $target = $(event.target);
-            // 鼠标点击滚动条向下按钮事件
-            var interval = setInterval(function() {
-                wxm.Scroll.mousedownOrClickInArrowIcon($target, options.arrow.DOWN);
-            }, 80);
-            // 按钮存放定时器值
-            $target.attr('data-interval', interval);
-        }).off('mouseup.scroll.down.data-api').on('mouseup.scroll.down.data-api', function(event) {
-            // 获取事件
-            event = wxm.event.getEvent(event);
-            // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
-            if (event.which != 1) return;
-            // 事件触发目标
-            var $target = $(event.target);
-            // 鼠标点击滚动条事件
-            var interval = $target.attr('data-interval');
-            // 取消定时器
-            clearInterval(interval);
+            // 遮罩层
+            var $mask = $('<div class="wxm-scroll-mask" data-target="' + dataId + '"><div>');
+
+            // 目标元素添加hover效果
+            tools.getScrollMiddle().addClass('hover');
+            tools.getScrollParent().addClass('hover');
+
+            // 页面添加滚动条遮罩层
+            $(document.body).append($mask);
+
+            $mask.off('mouseover.scroll.down.data-api').on('mouseover.scroll.down.data-api', function(event) {
+                // 仿鼠标点击滚动条向上按钮事件
+                var interval = setInterval(function() {
+                    wxm.Scroll.mousedownOrClickInArrowIcon($target, options.arrow.DOWN);
+                }, 60);
+                // 遮罩层存放定时器值
+                $mask.attr('data-interval', interval);
+            }).off('mouseout.scroll.down.data-api').on('mouseout.scroll.down.data-api', function(event) {
+                wxm.Scroll.cancelInterval(event);
+                wxm.Scroll.removeMask(this);
+            }).off('mouseup.scroll.down.data-api').on('mouseup.scroll.down.data-api', function(event) {
+                wxm.Scroll.cancelInterval(event);
+                wxm.Scroll.removeMask(this);
+            });
         });
     }
 };
@@ -457,8 +471,8 @@ wxm.Scroll.mousedownOrClickInArrowIcon = function($target, arrow) {
     $element.css('margin-top', elementMarginTop);
 };
 
-// 遮罩层鼠标放开或鼠标离开滚动条事件
-wxm.Scroll.mouseupOrMouseoutInMask = function(_this) {
+// 删除遮罩层，取消滚动条选中样式
+wxm.Scroll.removeMask = function(_this) {
     // 获取当前对象
     var $thiz = $(_this);
     // 当前对象对应目标滚动条data-id
@@ -470,6 +484,20 @@ wxm.Scroll.mouseupOrMouseoutInMask = function(_this) {
     $box.find('.wxm-scroll-middle').removeClass('hover');
     // 删除当前对象
     $thiz.remove();
+};
+
+// 取消遮罩层对应定时器任务
+wxm.Scroll.cancelInterval = function(event) {
+    // 获取事件
+    event = wxm.event.getEvent(event);
+    // 对应的鼠标按钮[1:鼠标左键][2:鼠标中键(滚轮键)][3:鼠标右键]，只获取鼠标左键点击事件
+    if (event.which != 1) return;
+    // 事件触发目标
+    var $target = $(event.target);
+    // 鼠标点击滚动条事件
+    var interval = $target.attr('data-interval');
+    // 取消定时器
+    clearInterval(interval);
 };
 
 // 滚动条渲染
